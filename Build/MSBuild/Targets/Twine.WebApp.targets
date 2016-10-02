@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***********************************************************************************************
+Twine.WebApp.targets
+
+This probably won't be useful to most people and can be repurposed.
+
+This files contains webapp (WebSite/WebService) specific targets for MSBuild project files.
+
+
+Copyright (C) Jeff Tong - All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+
+  
+  <Target Name="PopulateVb6Dependencies" >
+ 
+    <PropertyGroup>
+      <LatestBinPath>$(BinPath)\Latest</LatestBinPath>
+      <DestPublishPath>$(PublishDir)\bin</DestPublishPath>
+      <DestPublishPath Condition="'$(PublishDir)' == '' OR '$(PublishDir)' == 'bin\app.publish\'">$(MSBuildProjectDirectory)\Publish\bin</DestPublishPath>
+    </PropertyGroup>
+  
+    <ItemGroup>
+      <Vb6Binaries Include="$(BinPath)\Release\SomeVb6Dependency1.dll" />
+      <Vb6Binaries Include="$(BinPath)\Release\SomeVb6Dependency2.dll" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="CopyVb6Binaries" DependsOnTargets="PopulateVb6Dependencies">  <!-- Call this from the project --> 
+    <Message Importance="High" Text="Copying VB6 binaries to '$(DestPublishPath)'" />
+    <Copy SourceFiles="@(Vb6Binaries)" DestinationFolder="$(Vb6Binaries)" />
+  </Target>
+  
+</Project>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***********************************************************************************************
+Twine.CodeSign.targets
+
+This file defines the call to code signing tool.  If you want your code sign to occur after the
+entire build has finished, then you use this target.
+
+$(TeamBuild) = Defined by Twine.Environment.Props.
+
+Defined by BuildDefinition MSbuild Arguments.
+$(EnableSignBundleEngine) = Enable code signing of BundleEngines.
+$(EnableSignBundle) = Enable code signing of Bundles.
+$(EnableSignCabs) = Enable code signing of Cabs.
+$(EnableSignMsi) = Enable code signing of MSIs.
+$(EnableSignBin) = Enable code signing of compiled Binaries.
+
+Copyright (C) Jeff Tong - All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+
+  <!--
+    ============================================================
+                          Load Tasks
+
+    ============================================================
+    -->
+
+  <UsingTask AssemblyFile="$(TasksBinPath)\Twine.MSBuild.Tasks.RetryExec.dll" TaskName="RetryExec" />
+
+
+  <PropertyGroup>
+    <!--<sourceRoot>$(OutputPath)..\..\..</sourceRoot>-->
+    <CodeSignCertPath>$(PrivatePath)\CodeSign</CodeSignCertPath>
+
+    <CodeSignCertName>CodeSignCertificatePublic.p7b</CodeSignCertName>
+    <CertificateThumbprint>‎‎</CertificateThumbprint>
+
+    <Description>Description</Description>
+    <CodeSignUrl>http://www.yourcompnay.com</CodeSignUrl>
+    <CodeSignTimeStampUrl>http://timestamp.verisign.com/scripts/timstamp.dll</CodeSignTimeStampUrl>
+
+    <CodeSignToolPath Condition="'$(Platform)'=='AnyCPU'">$(WindowsSdkBinPath)\x86\signtool.exe</CodeSignToolPath>
+    <CodeSignToolPath Condition="'$(Platform)'!='AnyCPU'">$(WindowsSdkBinPath)\$(Platform)\signtool.exe</CodeSignToolPath>
+    <Args>sign /f "$(CodeSignCertPath)\$(CodeSignCertName)" /p |YOURPASSSWORD| /t $(CodeSignTimeStampUrl) /v /d "$(Description)"</Args>
+    <TargetFilePath>"$(OutputPath)$(TargetFileName)"</TargetFilePath>
+
+    <Retries>5</Retries>
+    <TimeToSleep>30</TimeToSleep>
+  </PropertyGroup>
+
+  <!--
+    ============================================================
+                          Target Definitions
+
+    ============================================================
+    -->
+
+  <Target Name="SignBundleEngine" Condition=" '$(EnableSignBundleEngine)' == 'true'" >
+    <PropertyGroup>
+      <TaskName>[SignBundleEngine]</TaskName>
+      <Command>$(CodeSignToolPath) $(Args) "@(SignBundleEngine)"</Command>
+    </PropertyGroup>
+
+    <Message Importance="High" Text="$(TaskName):Codesigning '@(SignBundleEngine)'..." />
+    <Message Importance="High" Text='$(TaskName) Running Command= "$(Command)"' />
+
+    <RetryExec FilePath='"$(CodeSignToolPath)"' Arguments='$(Args) "@(SignBundleEngine)"' Retries="$(Retries)" TimeToSleep="$(TimeToSleep)" />
+  </Target>
+
+
+  <Target Name="SignBundle" Condition=" '$(EnableSignBundle)' == 'true'" >
+    <PropertyGroup>
+      <TaskName>[SignBundle]</TaskName>
+      <Command>$(CodeSignToolPath) $(Args) "@(SignBundle)"</Command>
+    </PropertyGroup>
+
+    <Message Importance="High" Text="$(TaskName):Codesigning '@(SignBundle)'..." />
+    <Message Importance="High" Text='$(TaskName) Running Command= "$(Command)"' />
+
+    <RetryExec FilePath='"$(CodeSignToolPath)"' Arguments='$(Args) "@(SignBundle)"' Retries="$(Retries)" TimeToSleep="$(TimeToSleep)" />
+  </Target>
+
+
+  <Target Name="SignCabs" Condition=" '$(EnableSignCabs)' == 'true'" >
+    <PropertyGroup>
+      <TaskName>[SignCabs]</TaskName>
+      <Command>$(CodeSignToolPath) $(Args) "@(SignCabs)"</Command>
+    </PropertyGroup>
+
+    <Message Importance="High" Text="$(TaskName):Codesigning '@(SignBundle)'..." />
+    <Message Importance="High" Text='$(TaskName) Running Command= "$(Command)"' />
+
+    <RetryExec FilePath='"$(CodeSignToolPath)"' Arguments='$(Args) "@(SignCabs)"' Retries="$(Retries)" TimeToSleep="$(TimeToSleep)" />
+  </Target>
+
+
+  <Target Name="SignMsi" Condition=" '$(EnableSignMsi)' == 'true' AND '$(ProjectExt)' == '.wixproj' " AfterTargets="AssignCultures;CoreBuild">
+    <PropertyGroup>
+      <TaskName>[SignMsi]</TaskName>
+      <Command>$(CodeSignToolPath) $(Args) "@(SignTargetPath)"</Command>
+    </PropertyGroup>
+
+    <!-- set the IgnoreExitCode to false -->
+    <Message Importance="High" Text="$(TaskName):Codesigning '@(SignTargetPath)'..." />
+    <Message Importance="High" Text='$(TaskName) Running Command= "$(Command)"' />
+
+    <RetryExec FilePath='"$(CodeSignToolPath)"' Arguments='$(Args) "@(SignTargetPath)"' Retries="$(Retries)" TimeToSleep="$(TimeToSleep)" />
+
+    <!--<SignFile CertificateThumbprint="$(CertificateThumbprint)" SigningTarget="$(TargetFilePath)" />-->
+  </Target>
+
+
+  <Target Name="SignBin" Condition=" '$(EnableSignBin)' == 'true' AND ('$(ProjectExt)' == '.vbproj' OR '$(ProjectExt)' == '.csproj')" AfterTargets="CoreBuild">
+    <PropertyGroup>
+      <TaskName>[SignBin]</TaskName>
+      <Command>$(CodeSignToolPath) $(Args) "$(TargetFilePath)"</Command>
+    </PropertyGroup>
+
+    <Message Importance="High" Text="$(TaskName):Codesigning '$(TargetFilePath)'..." />
+    <Message Importance="High" Text='$(TaskName) Running Command= "$(Command)"' />
+
+    <RetryExec FilePath='"$(CodeSignToolPath)"' Arguments='$(Args) $(TargetFilePath)' Retries="$(Retries)" TimeToSleep="$(TimeToSleep)" />
+  </Target>
+
+</Project>

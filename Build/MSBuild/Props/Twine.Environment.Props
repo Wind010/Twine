@@ -1,0 +1,100 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+<!--
+***********************************************************************************************
+Twine.Environment.Props
+
+Contains Twine specific environment properties.
+
+This should be one of the first imports for projects using Twine.  The project template includes
+this.  
+
+Copyright (C) Jeff Tong - All rights reserved.
+***********************************************************************************************
+-->
+
+  <!--Properties for Custom Source Paths-->
+  <PropertyGroup>
+    <!-- BranchRoot can be set from the system environment variable %BranchRoot% on machine -->
+
+    <BranchRoot Condition=" '$(BranchRoot)' == '' ">$([System.IO.Path]::GetFullPath('..\..\..\..\..\..'))</BranchRoot>
+       
+    <BuildRootPath>$(BranchRoot)\Build</BuildRootPath>
+    <MSBuildConfigPath>$(BuildRootPath)\MSBuild</MSBuildConfigPath>
+    <SettingsPath>$(MSBuildConfigPath)\Settings</SettingsPath>
+    <PropsPath>$(MSBuildConfigPath)\Props</PropsPath>
+    <TargetsPath>$(MSBuildConfigPath)\Targets</TargetsPath>
+    <TasksBinPath>$(MSBuildConfigPath)\Tasks\Bin</TasksBinPath>
+    
+    <!--<MainPath>$(BranchRoot)\Main</MainPath>-->
+    <BranchLeaf Condition=" '$(BranchLeafPath)' != '' ">$(BranchLeafPath)</BranchLeaf>
+    <BranchLeaf Condition=" '$(BranchLeafPath)' == '' ">Main</BranchLeaf>
+    
+    <!--<BranchPath Condition=" '$(BranchLeaf)' == '' ">$(MainPath)</BranchPath>-->
+    <BranchPath Condition=" '$(BranchLeaf)' != '' ">$(BranchRoot)\$(BranchLeaf)</BranchPath>
+    
+    <!-- $(BinariesRoot) should be populated if run through Team Build -->
+    <!-- This is the equivalent of TargetPath in CoreXt -->
+    <BinariesRoot Condition=" '$(BinariesRoot)' == '' ">$(BranchRoot)\Bin</BinariesRoot>
+    <BinPath>$(BranchPath)\Bin</BinPath>
+    <PublicPath>$(BinPath)\Public</PublicPath>
+    <PrivatePath>$(BinPath)\Private</PrivatePath>
+    <LicensePath>$(PrivatePath)\Licenses</LicensePath>
+    <CommonAssemblyInfoPath>$(PrivatePath)\Inc</CommonAssemblyInfoPath>
+    
+    <!-- Clear way to check if build is started by TeamBuild or not -->
+    <TeamBuild Condition=" '$(USERNAME)' == 'BuildServiceAccount' ">true</TeamBuild>
+    <TeamBuild Condition=" '$(USERNAME)' != 'BuildServiceAccount' ">false</TeamBuild>
+  </PropertyGroup>
+  
+  <!--Properties for Shared or Public Paths-->
+  <PropertyGroup>
+    <!--<BinariesDirectory>$(INETROOT)\$(BuildType)\</BinariesDirectory>-->
+    
+    <!-- Default here as this is where TFS sets by default. -->
+    <OutputPath Condition="'$(OutputPath)' == '' AND '$(OutDir)' != '' ">$(OutDir)</OutputPath>
+    <OutDir Condition="'$(OutDir)' == ''">$(OutputPath)</OutDir>
+    
+    <!--
+    <OutputPath Condition="'$(BuildingInsideVisualStudio)' != 'true' ">$(BinariesDirectory)\$(BuildType)\$(AssemblyName)\$(BuildArchitecture)\</OutputPath>
+    <OutputPath Condition=" '$(BvtProject)' == 'true' ">$(BinariesDirectory)\$(BuildType)\AutomatedTests\$(AssemblyName)</OutputPath>
+    <OutputPath Condition=" '$(UnitTestProject)' == 'true' ">$(BinariesDirectory)\$(BuildType)\UnitTests\$(AssemblyName)</OutputPath>
+    -->
+
+    <StyleCopVersion>v4.7</StyleCopVersion>
+    <StyleCopEnabled Condition=" '$(StyleCopEnabled)' == '' ">false</StyleCopEnabled>
+
+    <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.0</TargetFrameworkVersion>
+    <AssemblyClsCompliant Condition="'$(AssemblyClsCompliant)' == ''">false</AssemblyClsCompliant>
+  </PropertyGroup>
+
+  <!--Required Properties-->
+  <!--For all configurations-->
+  <PropertyGroup>
+    <!--Setting WarningLevel as 1 since msbuild 10 outputs a lot of warnings duplicated by StyleCop.
+      At some point, we should move this back to 4.-->
+    <WarningLevel Condition="'$(WarningLevel)' == '' ">1</WarningLevel>
+  </PropertyGroup>
+  
+  <PropertyGroup>
+    <WindowsSdkVersion>8.0</WindowsSdkVersion>
+    <WindowsSdkBinPath>$(PublicPath)\Microsoft\Windows\SDK\$(WindowsSdkVersion)\bin</WindowsSdkBinPath>
+  </PropertyGroup>
+  
+  
+  <!--
+  <PropertyGroup Condition=" '$(SignAll)' == 'true' ">
+    <EnableSignBundle>true</EnableSignBundle>
+    <EnableSignMsi>true</EnableSignMsi>
+    <EnableSignCabs>true</EnableSignCabs>
+    <EnableSignBin>true</EnableSignBin>
+  </PropertyGroup>
+  -->
+  
+  <!--
+  <PropertyGroup>
+    <IncrementVersion>true</IncrementVersion>
+  </PropertyGroup>
+  -->
+  
+</Project>

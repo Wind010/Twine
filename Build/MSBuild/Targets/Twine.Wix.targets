@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***********************************************************************************************
+Twine.Wix.targets
+
+This probably won't be useful to most people.
+
+This files contains logic to publish webapps (webservices and websites) then harvest the
+publish/output directory.  This target is intended to be called for Wix Projects that have a
+project reference to the web application and should be called as part of the BeforeBuild target
+in that project.  If the wixproject does not alter the web.config (user input dialog), then 
+AlterConfig should be set to false within the wixproject.  The following properties should be
+specified as shown in the wixproject:
+
+SomeWebApp.wixproj:
+
+  <ProjectReference Include="..\MyWebApp\MyWebApp.csproj">
+    <Name>SomeWebService</Name>
+    <Project>{0526f6ef-b8ec-4414-a422-681130612ca7}</Project>
+    <Private>True</Private>
+    <DoNotHarvest>
+    </DoNotHarvest>
+    <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+    <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    <WebProject>True</WebProject>
+  </ProjectReference>
+
+  <PropertyGroup>
+    <HarvestProjectName>MyWebApp</HarvestProjectName>
+    <ProjectSourcePath>$(BranchRoot)\Interface\OTA\Projects\MyWebApp</ProjectSourcePath>
+    <PublishRoot>$(ProjectSourcePath)</PublishRoot>
+    <PublishDir>$(PublishRoot)\Publish</PublishDir>
+    <ProjectPath>$(ProjectSourcePath)\$(HarvestProjectName).vbproj</ProjectPath>
+    <AlterConfig>true</AlterConfig>
+    <ConfigFile>web.config</ConfigFile>
+    <ReleaseConfigFile>Web.Release.Config</ReleaseConfigFile>
+    <WxsFile>$(HavestProjectName).wxs</WxsFile>
+    <DirectoryRefId>MYWEBAPP</DirectoryRefId>
+    <ComponentGroupName>MyWebComponents</ComponentGroupName>
+    <DefineConstants>$(DefineConstants);PublishDir=$(PublishDir)</DefineConstants>
+    <HasVb6Reference>true</HasVb6Reference>
+    <DoHarvest>false</DoHarvest> 
+  </PropertyGroup>
+  
+  <Target Name="BeforeBuild">
+    <CallTarget Targets="CreateInstaller"/>
+  </Target>
+  
+  
+  If project has COM/VB6 dependencies:
+    <Target Name="PopulateVb6Dependencies" >
+    <ItemGroup>
+      <Vb6Binaries Include="$(BinPath)\Release\SomeVb6Dependency1.dll" />
+      <Vb6Binaries Include="$(BinPath)\Release\SomeVb6Dependency2.dll" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="BeforeBuild" DependsOnTargets="PopulateVb6Dependencies" >
+    <CallTarget Targets="HarvestWebApp" /> 
+  </Target>
+  
+
+If the installer has already been released to customers, do not reharvest the output files.  If
+a new file is added, alter the existing WxsFile directly.  We don't want GUIDs to be regenerated
+for already installed files.
+
+Copyright (C) Jeff Tong - All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+
+  <!--
+  ============================================================
+                       Target Definitions
+
+  ============================================================
+  -->
+  
+  <Import Project="$(TargetsPath)\Twine.WebApp.targets" />
+
+  <!--
+    HarvestWebApp
+    Build and publish the project reference specified as the webproject.  Remove the web.config and
+    harvest (if AlterConfig is specified as true).  Havest the published files and replace with the
+    release version of the web.config (if AlterConfig is specified as true).
+  -->
+  <Target Name="HarvestWebApp">
+  
+    <!-- Remove complete publish folder in order to be sure that everything will be newly compiled -->
+    <Message Importance="High" Text='Cleaning up any previous published files. $(PublishDir)' />
+    <ItemGroup>
+      <FilesToDelete Include="$(PublishDir)\bin\*"/>
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)" />
+    <ItemGroup>
+      <FilesToDelete Include="$(PublishDir)\*"/>
+    </ItemGroup>
+    <Delete Files="@(FilesToDelete)" />
+    <RemoveDir Directories="$(PublishDir)" ContinueOnError="false" />
+    
+    <!-- Build and Publish-->
+    <!-- Note that publish needs to happen in order to get the correct deployment structure. -->
+    <MSBuild Projects="$(ProjectPath)"
+        Targets="ResolveReferences;_CopyWebApplication"
+        Properties="OutDir=$(PublishDir)\bin\;WebProjectOutputDir=$(PublishDir);Configuration=$(Configuration);Platform=$(Platform);DebugSymbols=false;DebugType=None" 
+     />
+    <!-- Targets="Package" --> 
+
+    <!-- Copy the dependent files. -->
+    <!-- MSBuild task does not publish dependencies. Was working with project reference. -->
+    <Message Importance="High" Text='Copying dependencies from "$(ProjectSourcePath)\bin\*" to "$(PublishDir)\bin"' />
+    <ItemGroup>
+      <FilesToCopy Include="$(ProjectSourcePath)\bin\*" Exclude="$(ProjectSourcePath)\bin\*.pdb" 
+        Condition="$(Configuration) == 'Release' " />
+      <FilesToCopy Include="$(ProjectSourcePath)\bin\*" Condition="$(Configuration) == 'Debug' " />
+    </ItemGroup>
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(PublishDir)\bin" ContinueOnError="false" />
+ 
+    <!-- Copying any VB6 dependencies -->
+    <Message Importance="High" Text='Copying VB6 dependencies: %(Vb6Binaries.Identity)' Condition="'@(EmptyCheck)' != ''" />
+    <!--<Copy SourceFiles="@(Vb6Binaries)" DestinationFolder="$(PublishDir)\bin" ContinueOnError="false"/> -->
+    <CallTarget Targets="CopyVb6Binaries"/>
+
+    <!-- Remove unecessary web.config until after harvest. -->
+    <Delete Files="$(PublishDir)\$(ReleaseConfigFile)"  />
+    <Delete Files="$(PublishDir)\$(ConfigFile)" Condition="'$(AlterConfig)' == 'true' " />
+    
+
+    <!-- Harvest Files -->
+    <Message Importance="High" Text='Harvesting files from $(PublishDir)' 
+      Condition="'$(DoHarvest)' == 'true'"/>
+    
+    <Message Importance="High" Text='Harvesting with HeatDirectory task.' 
+      Condition="'$(DoHarvest)' == 'true' AND '$(HasVb6Reference)' == 'false'"/>
+    
+    <Message Importance="High" Text='Harvesting with $(WixToolPath)\heat.exe.' 
+      Condition="'$(DoHarvest)' == 'true' AND '$(HasVb6Reference)' == 'true'"/>
+      
+    <HeatDirectory OutputFile="$(WxsFile)" Directory="$(PublishDir)" 
+        DirectoryRefId="$(DirectoryRefId)" ComponentGroupName="$(ComponentGroupName)" AutogenerateGuids="false" 
+        SuppressCom="true" SuppressFragments="false" SuppressRegistry="true" SuppressRootDirectory="true" 
+        ToolPath="$(WixToolPath)" PreprocessorVariable="var.PublishDir" SuppressUniqueIds="true" GenerateGuidsNow="true"
+        Condition="'$(DoHarvest)' == 'true' AND '$(HasVb6Reference)' == 'false' "
+     />
+    
+    <!-- Use this if project has VB6 dependencies -->
+    <!-- Harvest all content of published directory. -->
+		<Exec WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" 
+		    Command='"$(WixToolPath)\heat.exe" dir "$(PublishDir)" -dr $(DirectoryRefId) -ke -srd -cg $(ComponentGroupName) -var var.PublishDir -gg -out $(WxsFile) -sreg -suid'
+        Condition="'$(DoHarvest)' == 'true' AND '$(HasVb6Reference)' == 'true' "
+	   />
+
+    <!-- Replace the debug web.config with the release web.config -->
+    <Copy SourceFiles="$(ProjectSourcePath)\$(ReleaseConfigFile)" DestinationFiles="$(PublishDir)\Web.config" 
+      ContinueOnError="false" Condition="'$(AlterConfig)' == 'true' " />
+  </Target>
+  
+  
+  <!--
+    HarvestApp
+    Remove the app.config and harvest (if AlterConfig is specified as true).  
+    Havest the published files and replace with the release version of the web.config 
+    (if AlterConfig is specified as true).
+  -->
+  <Target Name="HarvestApp">
+    <!-- Remove unecessary app.config until after harvest. -->
+    <Delete Files="$(PublishDir)\$(ReleaseConfigFile)"  />
+    <Delete Files="$(PublishDir)\$(ConfigFile)" Condition="'$(AlterConfig)' == 'true' " />
+
+     <HeatDirectory OutputFile="$(WxsFile)" Directory="$(PublishDir)" 
+        DirectoryRefId="$(DirectoryRefId)" ComponentGroupName="$(ComponentGroupName)" AutogenerateGuids="false" 
+        SuppressCom="false" SuppressFragments="false" SuppressRegistry="false" SuppressRootDirectory="true" 
+        ToolPath="$(WixToolPath)" PreprocessorVariable="var.PublishDir" SuppressUniqueIds="true" GenerateGuidsNow="true"
+        Condition="'$(DoHarvest)' == 'true' AND '$(HasVb6Reference)' == 'false' "
+     />
+    
+    <!-- -ag -sfrag -svb6 -suid -scom -sreg-->
+		<Exec WorkingDirectory="$(MSBuildProjectDirectory)" ContinueOnError="false" 
+		    Command='"$(WixToolPath)\heat.exe" dir "$(PublishDir)" -dr $(DirectoryRefId) -ke -srd -cg $(ComponentGroupName) -var var.PublishDir -gg -out $(WxsFile) ' 
+        Condition="'$(DoHarvest)' == 'true' AND '$(HasVb6Reference)' == 'true' "
+	   />
+
+  </Target>
+   
+</Project>
+

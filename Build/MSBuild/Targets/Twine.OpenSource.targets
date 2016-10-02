@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***********************************************************************************************
+Twine.OpenSource.targets
+
+This target copies any opensource licenses to the declared destination directory path.
+
+
+Copyright (C) Jeff Tong - All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+
+
+  <Target Name="CopyOpenSourceFiles">
+
+    <Error Condition="!Exists('$(BinariesDirectory)')" Text="BinariesDirectory property was not set to a valid directory!" />
+    
+    <PropertyGroup>
+      <SourcesRoot Condition=" '$(BranchRoot)' != '' ">$([System.IO.Path]::GetFullPath('$(BranchRoot)\..'))</SourcesRoot>
+
+      <OSSSourceDirectory>$(SourcesRoot)\OSS</OSSSourceDirectory>
+      <OSSOutputDirectory>$(BinariesDirectory)\OpenSource</OSSOutputDirectory>
+      <!--<OSSDropDirectory>$(DropLocation)OpenSource</OSSDropDirectory>-->
+    </PropertyGroup>
+
+    <Message Text="SourcesRoot        set to: '$(SourcesRoot)'" Importance="Normal" />
+    <Message Text="BinariesDirectory  set to: '$(BinariesDirectory)'" Importance="Normal" />
+    <Message Text="OSSSourceDirectory set to: '$(OSSSourceDirectory)'" Importance="Normal" />
+    <Message Text="OSSOutputDirectory set to: '$(OSSOutputDirectory)'" Importance="Normal" />
+    <!--<Message Text="OSSDropDirectory   set to: '$(OSSDropDirectory)'" Importance="Normal" />-->
+
+    <Error Condition="!Exists('$(OSSSourceDirectory)')" Text="OSSSourceDirectory property was not set to a valid directory!" />
+
+    <CreateItem Include="$(OSSSourceDirectory)\**\*.*">
+      <Output TaskParameter="Include" ItemName="OSSSourceFiles" />
+    </CreateItem>
+
+    <Message Text="Creating directory: $(OSSOutputDirectory)" Importance="Normal" />
+    <MakeDir Condition="Exists($(OutputPath))" Directories="$(OSSOutputDirectory)" />
+
+    <!--<Message Text="Creating directory: $(OSSDropDirectory)" Importance="Normal" />
+    <MakeDir Condition="Exists($(DropLocation))" Directories="$(OSSDropDirectory)" />-->
+
+    <Message Text="Copying open source files to $(OSSOutputDirectory)'" Importance="Normal" />
+    <Message Text="======================================" Importance="high"/>
+    <Message Text="ItemsToCopy1: @(OSSSourceFiles)" />
+    <Message Text="======================================" Importance="high"/>
+
+    <Copy SourceFiles="@(OSSSourceFiles)"
+         DestinationFiles="@(OSSSourceFiles->'$(OSSOutputDirectory)\%(RecursiveDir)%(Filename)%(Extension)')"
+         ContinueOnError="false" />
+
+    <!--<Message Text="Copying open source files to $(OSSDropDirectory)'" Importance="Normal" />
+
+    <Copy SourceFiles="@(OSSSourceFiles)" 
+          DestinationFiles="@(OSSSourceFiles->'$(OSSDropDirectory)\%(RecursiveDir)%(Filename)%(Extension)')"
+         ContinueOnError="false" />-->
+
+  </Target>
+
+
+</Project>

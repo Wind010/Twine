@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!-- TIP: Check if required properties are set -->
+  <Target Name="CheckRequiredProperties">
+    <Error Condition="$(OutDir) == ''" Text="OutDir property must be set" />
+    <Error Condition="$(SourceDir) == ''" Text="SourceDir property must be set" />
+  </Target>
+  <!-- TIP: Print build information -->
+  <Target Name="PrintProperties">
+    <Message Importance="normal" Text="OutDir: $(OutDir)" />
+    <Message Importance="normal" Text="SourceDir: $(SourceDir)" />
+  </Target>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <Import Project="$(BranchRoot)\Build\MsBuild\Props\Twine.Environment.props" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProjectGuid>{13E6257A-18F0-4468-8CFA-292A2CCD4A3A}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Twine.PreBuild</RootNamespace>
+    <AssemblyName>Twine.PreBuild</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <Import Project="$(SettingsPath)\Twine.Common.Build.Settings" />
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="PreBuild.cs" />
+    <Compile Include="$(CommonAssemblyInfoPath)\CommonAssemblyInfo.cs">
+      <Link>CommonAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(TargetsPath)\Twine.Versioning.targets" />
+  <Import Project="$(TargetsPath)\Twine.Release.targets" />
+  <Import Project="$(TargetsPath)\Twine.OpenSource.targets" />
+  <Target Name="BeforeBuild">
+    <CallTarget Targets="IncrementAssemblyVersion;KeepCurrentAssemblyVersion;CopyOpenSourceFiles" RunEachTargetSeparately="true" />
+  </Target>
+</Project>

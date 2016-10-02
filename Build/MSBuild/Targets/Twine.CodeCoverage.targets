@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***********************************************************************************************
+Twine.CodeCoverage.targets
+
+This file contains logic for calling a code coverage script.  
+
+This is generally not needed and can be repurposed to run other utilities or Powershell scripts.
+
+Copyright (C) Jeff Tong - All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+
+  <Target Name="GenerateCodeCoverage" Condition=" '$(CodeCoverage)' == 'true' ">
+    
+    <Message Text="Generating code coverage instrumented binaries" Importance="Normal" />
+
+    <PropertyGroup>
+      <CovTargetDir>$(OutputPath)COV</CovTargetDir>
+      <CovDropDir>$(DropDirectory)\COV</CovDropDir>
+      <PowerShellPath>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe</PowerShellPath>
+      <ScriptFile>$(BranchRoot)\Build\Scripts\CC\Instrument\CodeCover.ps1</ScriptFile>
+      <ScriptsWorkingDir>$(OutputPath)\Build\Scripts</ScriptsWorkingDir>
+      <CovDropDirectory></CovDropDirectory>
+    </PropertyGroup>
+
+    <Message Text="Creating directory: $(CovTargetDir)" Importance="Normal" />
+    <MakeDir Condition="Exists('$(DropDirectory)')" Directories="$(CovDropDir)" />
+
+    <Message Text="Executing PowerShell Script: $(ScriptFile)" Importance="Normal" />
+    <Exec Command="$(PowerShellPath) -NonInteractive -executionpolicy Unrestricted  -command &quot;&amp; &apos;$(ScriptFile)&apos; &apos;$(BinariesDirectory)&apos; &quot; " 
+          ContinueOnError="true" 
+           LogStandardErrorAsError="false"
+           >
+      <Output TaskParameter="ExitCode"  PropertyName="ReturnValue"/>
+    </Exec>
+    <!--<Error Text="Error during code coverage creation" Condition="$(ReturnValue) > 0"/>-->
+
+    <Message Text="Code coverage instrumentation complete. Copying to drop location" Importance="Normal" />
+    <Copy Condition="Exists('$(CovDropDir)')"
+           SourceFiles="$(CovTargetDir)\*.*"
+           ContinueOnError="false"
+           DestinationFolder="$(CovDropDir)" />
+    
+    <Message Text="Code coverage File copy complete." Importance="Normal" />
+
+  </Target>
+
+
+</Project>

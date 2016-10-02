@@ -1,0 +1,23 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <!--
+  ***********************************************************************************************
+  Twine.Build.Post.Settings
+
+  Settings to be imported after other build settings have been imported.  
+  
+  Copyright (C) Jeff Tong - All rights reserved.
+  ***********************************************************************************************
+  -->
+
+  
+  <PropertyGroup>
+    <!-- Set explicitly $(configuration)\$(platform) since it is set to defaults Debug|ANYCPU -->
+    <OutputPath Condition=" '$(TeamBuild)' == 'true' ">$(OutDir)</OutputPath>
+    <OutputPath Condition=" ('$(BuildingInsideVisualStudio)' == 'true' OR '$(BuildingInsideVisualStudio)' == '') AND '$(TeamBuild)' == 'false' ">$(BranchRoot)\Target\$(Configuration)\$(Platform)</OutputPath>
+    <PublishDir>$(BinariesDirectory)</PublishDir>    
+    <WixOutDir>$(OutputPath)</WixOutDir>
+  </PropertyGroup>
+
+
+</Project>

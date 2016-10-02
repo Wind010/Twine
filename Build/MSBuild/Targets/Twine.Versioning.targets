@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***********************************************************************************************
+Twine.Versioning.targets
+
+This file calls custom targets to increment the assembly version.
+
+Copyright (C) Jeff Tong - All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+
+  
+  <!-- Load all Tasks -->
+  <UsingTask AssemblyFile="$(TasksBinPath)\Twine.MSBuild.Tasks.CheckOutFile.dll" TaskName="CheckOutFile" />
+  <UsingTask AssemblyFile="$(TasksBinPath)\Twine.MSBuild.Tasks.AssemblyVersioning.dll" TaskName="AssemblyVersioning" />
+  <UsingTask AssemblyFile="$(TasksBinPath)\Twine.MSBuild.Tasks.CheckInFile.dll" TaskName="CheckInFile" />
+
+  <PropertyGroup>
+    <VersionFilePath>$(CommonAssemblyInfoPath)\version.txt</VersionFilePath>
+    <AssemblyInfoVB>$(CommonAssemblyInfoPath)\CommonAssemblyInfo.vb</AssemblyInfoVB>
+    <AssemblyInfoCS>$(CommonAssemblyInfoPath)\CommonAssemblyInfo.cs</AssemblyInfoCS>
+    <WixCommonversionPath>$(BranchPath)\Source\Install\Wix\Common\CommonVersion.wxi</WixCommonversionPath>
+    <!-- Any other filepaths that should be versioned. -->
+   
+    <TfsUri>http://tfs:8080/tfs</TfsUri>
+    
+    <FilePaths>$(AssemblyInfoVB);$(AssemblyInfoCS);$(WixCommonversionPath)</FilePaths>
+    <CheckInFiles>$(AssemblyInfoVB);$(AssemblyInfoCS);</CheckInFiles>
+
+  </PropertyGroup>
+  
+  
+
+  <Target Name="IncrementAssemblyVersion" Condition=" '$(IncrementVersion)' == 'true' ">
+    <CheckOutFile TfsUri="$(TfsUri)" FilePaths="$(VersionFilePath)"  />
+    <AssemblyVersioning FilePaths="$(FilePaths)" VersionFilePath="$(VersionFilePath)" IsNewVersion="True"/>
+    <CheckInFile TfsUri="$(TfsUri)" FilePaths="$(VersionFilePath)" Reason="Updating product versioning file"/>
+  </Target>
+
+  <Target Name="KeepCurrentAssemblyVersion" Condition=" '$(IncrementVersion)' != 'true' ">
+    <CheckOutFile TfsUri="$(TfsUri)" FilePaths="$(VersionFilePath)"  />
+    <AssemblyVersioning FilePaths="$(FilePaths)" VersionFilePath="$(VersionFilePath)" IsNewVersion="False"/>
+    <CheckInFile TfsUri="$(TfsUri)" FilePaths="$(VersionFilePath)" Reason="Updating product versioning file"/>
+  </Target>
+  
+
+  
+</Project>

@@ -1,0 +1,109 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  
+  <!--
+  ***********************************************************************************************
+  Twine.Common.Build.Settings
+
+  This is the common build settings file.  Other build settings should import this and 
+  then override it.
+  
+  Copyright (C) Jeff Tong - All rights reserved.
+  ***********************************************************************************************
+  -->
+  
+  <PropertyGroup>
+      <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+      
+      <!-- Used to switch Entity Framework version depending ont he TargetFrameWorkVersion. -->
+      <EntityDotNetVersion>40</EntityDotNetVersion>
+      <EntityDotNetVersion Condition=" '$(TargetFrameworkVersion)' == 'v4.5' " >45</EntityDotNetVersion>
+      
+      
+      <!-- Depending on how you handle your external binaries, this can be disabled. -->
+      <RestorePackages>true</RestorePackages>  
+      
+  </PropertyGroup>
+
+  
+  <!--For Debug configurations-->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <!-- <WarningLevel>1</WarningLevel> -->
+    <WarningsNotAsErrors>618</WarningsNotAsErrors>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  
+  <!--For Debug configurations-->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>1</WarningLevel>
+    <WarningsNotAsErrors>618</WarningsNotAsErrors>
+    <TargetFrameworkProfile/>
+  </PropertyGroup>
+ 
+  <!--For Debug configurations-->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>1</WarningLevel>
+    <WarningsNotAsErrors>618</WarningsNotAsErrors>
+    <TargetFrameworkProfile/>
+  </PropertyGroup>
+  
+  <!--For Release configurations-->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>1</WarningLevel>
+    <WarningsNotAsErrors>618</WarningsNotAsErrors>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+    
+  <!--For Release configurations-->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>1</WarningLevel>
+    <WarningsNotAsErrors>618</WarningsNotAsErrors>
+  </PropertyGroup>
+  
+  <!--For Release configurations-->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>false</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants></DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>1</WarningLevel>
+    <WarningsNotAsErrors>618</WarningsNotAsErrors>
+    <TargetFrameworkProfile/>
+  </PropertyGroup>
+
+  <!-- If all your projects are all one language then it makes sense to put this here
+       and alter your project templates to reflect this -->
+  <!-- Include the CommonAssemblyInfo.cs -->
+  <!--
+  <ItemGroup>
+    <Compile Include="$(CommonAssemblyInfoPath)\CommonAssemblyInfo.cs" />
+  </ItemGroup>
+  
+  -->
+  
+</Project>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***********************************************************************************************
+Twine.Release.targets
+
+This target was used before Team Foundation Server 2015 Update 2 for release operations.
+Below are example release actions for packaging a product, but can be used for deployment steps.
+
+Copyright (C) Jeff Tong - All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+
+  <Target Name="GenerateReleaseZip" Condition="'$(GenerateZip)' == 'true'">
+    <ReadLinesFromFile File="$(CommonAssemblyInfoPath)\Version.Txt">
+      <Output TaskParameter="Lines" ItemName="ProductVersion"/>
+    </ReadLinesFromFile>
+    <CreateProperty Value="@(ProductVersion)">
+      <Output TaskParameter="Value" PropertyName="NewProductVersion" />
+    </CreateProperty>
+
+    <Message Text="Product version from version.txt is '$(NewProductVersion)'" Importance="Normal" />
+    
+    <PropertyGroup>
+      <MajorVer>$(NewProductVersion.Split('.')[0])</MajorVer>
+      <MinorVer>$(NewProductVersion.Split('.')[1])</MinorVer>
+      <BuildVer>$(NewProductVersion.Split('.')[2])</BuildVer>
+      <RevisionVer>$(NewProductVersion.Split('.')[3])</RevisionVer>
+    </PropertyGroup>
+    <PropertyGroup>
+      <ProductName>ProductName<ProductName>
+      <ReadmeDir>$(BranchPath)\Bin\Private\Docs</ReadmeDir>
+      <SomeFilesToCopyDir>$(BranchPath)\Bin\Private\Docs</SomeFilesToCopyDir>
+      <ReportsDir>$(BranchPath)\Source\Reports</ReportsDir>
+      <ReleaseArchiveName>$(MajorVer).$(MinorVer)-$(BuildVer)</ReleaseArchiveName>
+      <ZipToolPath>$(BranchRoot)\Build\Tools\7za\7za.exe</ZipToolPath>
+      <OSSSourceDir>$(OutputPath)OpenSource</OSSSourceDir>
+      <ReleaseZipTargetDir>$(OutputPath)Zip</ReleaseZipTargetDir>
+      <ReleaseZipTempDir>$(ReleaseZipTargetDir)\$(ReleaseArchiveName)</ReleaseZipTempDir>
+      <OSSTargetDir>$(ReleaseZipTempDir)\V1Start\OpenSource</OSSTargetDir>
+      <ZipPassword>password</ZipPassword>
+      <ReleaseZipArgs>a "$(ReleaseZipTargetDir)\$(ReleaseArchiveName).exe" -t7z -r -mx9 -p$(ZipPassword) -sfx7z.sfx "$(ReleaseZipTempDir)\*.*"</ReleaseZipArgs>
+    </PropertyGroup>
+    
+    <Message Text="Release ZIP file name is '$(ReleaseArchiveName).exe'" Importance="Normal" />
+    <Message Text="Release ZIP temp path is '$(ReleaseZipTempDir)'" Importance="Normal" />
+
+    <CreateItem Include="$(OSSSourceDir)\**\*.*">
+      <Output TaskParameter="Include" ItemName="OSSFiles" />
+    </CreateItem>
+
+   
+    <ItemGroup>
+      <SomeFilesToCopy Include="$(SomeFilesToCopyDir)\**\*.*" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ReleaseFiles Include="$(OutputPath)\Something.msi" />
+    </ItemGroup>
+    <ItemGroup>
+      <UtilityFiles Include="$(OutputPath)\Something.exe" />
+    </ItemGroup>
+
+
+    <!-- Copying Readme files -->
+    <Message Text="Copying readme files from '@(ReadmeDir)' to '$(ReleaseZipTempDir)\$(ProductName)'" Importance="Normal" />
+    <Copy SourceFiles="@(ReadmeFiles)" DestinationFolder="$(ReleaseZipTempDir)\$(ProductName)"
+         ContinueOnError="false" />
+    
+    <!-- Copying Reports -->
+    <Message Text="Copying reports from '@(ReportsDir)' to '$(ReleaseZipTempDir)\%(ReportsDir.DestDir)'" Importance="Normal" />
+    <Copy SourceFiles="@(ReportsDir)" DestinationFolder="$(ReleaseZipTempDir)\%(ReportsDir.DestDir)" 
+         ContinueOnError="false" />
+
+
+    <!-- Copying Open Source files -->
+    <Message Text="Copying open source files to '$(OSSTargetDir)'" Importance="Normal" />
+    <Copy SourceFiles="@(OSSFiles)"
+          DestinationFiles="@(OSSFiles->'$(OSSTargetDir)\%(RecursiveDir)%(Filename)%(Extension)')"
+         ContinueOnError="false" />
+    
+    
+    <!-- Copying other files -->
+    <Message Text="Copying RunMe files from '@(SomeFilesToCopy)' to '$(ReleaseZipTempDir)\$(ProductName)'" Importance="Normal" />
+    <Copy SourceFiles="@(SomeFilesToCopy)" DestinationFolder="$(ReleaseZipTempDir)\$(ProductName)"
+         ContinueOnError="false" />
+    
+    <Message Text="Copying Access Databases from '@(AccessDatabaseDir)' to '$(ReleaseZipTempDir)\$(ProductName)'" Importance="Normal" />
+    <Copy SourceFiles="@(AccessDatabaseDir)" DestinationFolder="$(ReleaseZipTempDir)\$(ProductName)"
+         ContinueOnError="false" />
+
+    <Message Text="Copying release files from '@(UtilityFiles)' to '$(ReleaseZipTempDir)\$(ProductName)'" Importance="Normal" />
+    <Copy SourceFiles="@(ReleaseFiles)" DestinationFolder="$(ReleaseZipTempDir)\$(ProductName)"
+         ContinueOnError="false" />
+
+    <Message Text="Copying utility files from '@(ReleaseFiles)' to '$(ReleaseZipTempDir)\$(ProductName)\Utilities'" Importance="Normal" />
+    <Copy SourceFiles="@(UtilityFiles)" DestinationFolder="$(ReleaseZipTempDir)\$(ProductName)\Utilities"
+         ContinueOnError="false" />
+
+
+    <!-- Zipping Release File -->
+    <Message Text="Attempting zip:  $(ZipToolPath) $(ReleaseZipArgs)" Importance="Normal" />
+    <Exec Command="$(ZipToolPath) $(ReleaseZipArgs)">
+      <Output TaskParameter="exitcode" ItemName="exitcodes"/>
+    </Exec>
+    <Error Text="7za.exe errored." Condition="'%(exitcodes.identity)'>0"/>
+    
+    <!-- Clean up Staging Dir -->
+    <Message Text="Deleting '$(ReleaseZipTempDir)'" Importance="Normal" />
+    <RemoveDir Directories="$(ReleaseZipTempDir)" />
+
+    <!-- Zipping Token Conversion Utility File -->
+    <Message Text="Attempting zip:  $(ZipToolPath) $(TCUZipArgs)" Importance="Normal" />
+    <Exec Command="$(ZipToolPath) $(TCUZipArgs)">
+      <Output TaskParameter="exitcode" ItemName="exitcodes"/>
+    </Exec>
+    <Error Text="7za.exe errored." Condition="'%(exitcodes.identity)'>0"/>
+    
+  </Target>
+
+  
+</Project>

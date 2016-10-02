@@ -1,0 +1,26 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+  ***********************************************************************************************
+  Twine.Test.Settings
+
+  The main build settings file.  Usually for all general projects.
+   
+  Copyright (C) Jeff Tong - All rights reserved.
+  ***********************************************************************************************
+  -->
+
+  <!-- The common Build settings -->
+  <Import Project="Twine.Common.Build.Settings" />
+
+  <PropertyGroup>
+    <SettingsType>Core</SettingsType>
+  </PropertyGroup>
+
+  <!-- overwrite properties -->
+  <PropertyGroup>
+    
+  </PropertyGroup>
+  
+  <Import Project="Twine.Build.Post.Settings" />
+</Project>

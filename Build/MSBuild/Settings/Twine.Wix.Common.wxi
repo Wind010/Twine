@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Include>
+  <?define BuildVersion="1.00.000.00"?>
+  <?define ProductVersion="1.00.000.00" ?>
+  <?define Manufacturer="Company" ?>
+  <?define CompanyName="Company"?>
+</Include>

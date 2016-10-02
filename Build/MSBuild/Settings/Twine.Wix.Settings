@@ -1,0 +1,124 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+  ***********************************************************************************************
+  Twine.Wix.Settings
+
+  Settings specific to Wix Installer projects.
+  http://wixtoolset.org/
+
+  Copyright (C) Jeff Tong - All rights reserved.
+  ***********************************************************************************************
+  -->
+
+  <!-- The common Build settings -->
+  <Import Project="Twine.Common.Build.Settings" />
+    
+  <PropertyGroup>
+    <SettingsType>Wix</SettingsType>
+  </PropertyGroup>
+  
+  <!-- Wix Specific Properties -->
+  <PropertyGroup>
+    <!-- Default settings -->
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\$(WixVersion)\Wix.targets</WixTargetsPath>
+    <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\$(WixVersion)\Wix.targets</WixTargetsPath>
+    <WixCATargetsPath Condition=" '$(WixCATargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\$(WixVersion)\Wix.CA.targets</WixCATargetsPath>
+    
+    <WixVersion Condition="'$(ProductVersion)' == 'v4.0' ">v4.0</WixVersion>
+    <WixVersion Condition="'$(ProductVersion)' == '4.0' ">v4.0</WixVersion>
+    <WixVersion Condition="'$(ProductVersion)' != '4.0' ">v3.x</WixVersion>
+    
+    <WixPath>$(PublicPath)\Wix\$(WixVersion)</WixPath>
+    <WixSdkPath>$(PublicPath)\Wix\$(WixVersion)\Sdk\</WixSdkPath>
+    <WixToolPath >$(PublicPath)\Wix\$(WixVersion)\bin</WixToolPath>
+    <WixTargetsPath>$(WixPath)\Targets\Wix.targets</WixTargetsPath>
+    <WixTasksPath>$(WixToolPath)\wixtasks.dll</WixTasksPath>
+    <WixCATargetsPath>$(WixPath)\Targets\Wix.CA.targets</WixCATargetsPath>
+  </PropertyGroup>
+    
+  
+  <PropertyGroup>
+    <!-- Relavent for local builds.  Added since the wix2010.targets uses OutDir for TargetDir -->
+    
+    <!-- Depending on the msbuild argument passed in for OutputPath or OutDir 
+        One or the other could possibly not be overwritten.  Both are declared for local builds.-->
+    <!--
+    <OutDir Condition="'$(OutputType)' == 'Package'">$(OutputPath)\msi</OutDir>
+    <OutDir Condition="'$(OutputType)' == 'Module'">$(OutputPath)\msm</OutDir>
+    <OutDir Condition="'$(OutputType)' == 'Library'">$(OutputPath)\wixlib</OutDir>
+    <OutDir Condition="'$(OutputType)' == 'Bundle'">$(OutputPath)\exe</OutDir>
+    
+    <OutputPath Condition="'$(OutputType)' == 'Package'">$(OutputPath)\msi</OutputPath>
+    <OutputPath Condition="'$(OutputType)' == 'Module'">$(OutputPath)\msm</OutputPath>
+    <OutputPath Condition="'$(OutputType)' == 'Library'">$(OutputPath)\wixlib</OutputPath>
+    <OutputPath Condition="'$(OutputType)' == 'Bundle'">$(OutputPath)\exe</OutputPath>
+    -->
+    
+    <!-- Altered the wix2010.targets to set TargetDir from WixOutDir instead of OutDir
+     when SettingType of Wix is declared -->
+     
+    <WixOutDir>$(OutputPath)</WixOutDir>
+    <IntermediateOutputPath>obj\$(Configuration)</IntermediateOutputPath>
+  </PropertyGroup>
+  
+    
+  <!-- Overwrite Properties -->  
+  <!-- OutputPath only has $(Configuration) because it can only build in x86. -->
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <OutputPath Condition=" '$(TeamBuild)' == 'false' ">$(BranchRoot)\Target\$(Configuration)\$(Platform)</OutputPath>
+    <!-- Wix requires constants passed in for defined variables. -->
+    <DefineConstants>Debug;BinPath=$(BinPath);OutputPath=$(OutputPath);LicensePath=$(LicensePath);BranchRoot=$(BranchRoot);BranchLeaf=$(BranchLeaf);</DefineConstants>
+    <SuppressValidation>True</SuppressValidation>
+    <LinkerAdditionalOptions>
+    </LinkerAdditionalOptions>
+    <WixVariables>
+    </WixVariables>
+  </PropertyGroup>
+  
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath Condition=" '$(TeamBuild)' == 'false' ">$(BranchRoot)\Target\$(Configuration)\$(Platform)</OutputPath>
+    <!-- Wix requires constants passed in for defined variables. -->
+    <DefineConstants>Release;BinPath=$(BinPath);OutputPath=$(OutputPath);LicensePath=$(LicensePath);BranchRoot=$(BranchRoot);BranchLeaf=$(BranchLeaf);</DefineConstants>
+    <!--<SuppressValidation>True</SuppressValidation>-->
+    <SuppressIces>ICE03;ICE27;ICE83;ICE30;ICE57;ICE64;ICE90;ICE91</SuppressIces>  
+  </PropertyGroup>
+  
+  <!--
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
+    <DefineConstants>Debug;BinPath=$(BinPath);OutputPath=$(OutputPath)</DefineConstants>
+    <SuppressValidation>True</SuppressValidation>
+    <LinkerAdditionalOptions>
+    </LinkerAdditionalOptions>
+    <WixVariables>
+    </WixVariables>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x64' ">
+    <DefineConstants>BinPath=$(BinPath);OutputPath=$(OutputPath)</DefineConstants>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  
+  
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DefineConstants>Debug;BinPath=$(BinPath);OutputPath=$(OutputPath)</DefineConstants>
+    <SuppressValidation>True</SuppressValidation>
+    <LinkerAdditionalOptions>
+    </LinkerAdditionalOptions>
+    <WixVariables>
+    </WixVariables>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DefineConstants>BinPath=$(BinPath);OutputPath=$(OutputPath)</DefineConstants>
+    <IntermediateOutputPath>obj\$(Configuration)\</IntermediateOutputPath>
+  </PropertyGroup>
+  -->
+  
+  <!-- Abstract from all .Wixproj importing these settings -->
+  <Import Condition=" '$(outputType)' == 'Package' OR '$(outputType)' == 'Bundle' OR '$(outputType)' == 'Module'"
+    Project="$(WixTargetsPath)" />
+  
+  <Import Project="Twine.Build.Post.Settings" />
+
+</Project>

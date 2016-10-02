@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+***********************************************************************************************
+Twine.Custom.targets
+
+This files contains common custom targets for MSBuild project files.
+
+
+Copyright (C) Jeff Tong - All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+
+
+  <!--
+  <Target Name="BeforeBuild">
+
+    <PropertyGroup>
+      <EmptyLicenseFile>$(PrivatePath)\Licenses\EmptyLicenses.licx</EmptyLicenseFile>
+      <ProjectLicenseFile>My Project\licenses.licx</ProjectLicenseFile>
+    </PropertyGroup>
+  -->
+  
+   <!--
+   <CreateItem Include="My Project\emptyLicenses.licx">
+       <Output TaskParameter="Include" ItemName="EmptyLicensesLicx" />
+   </CreateItem> 
+   -->
+
+    <!--
+   <Copy Condition="Exists($(ProjectLicenseFile))"
+         SourceFiles="$(EmptyLicenseFile)" 
+         DestinationFiles="My Project\licenses.licx"
+         ContinueOnError="false" />
+         
+  </Target>
+  -->
+  
+  <Import Project="$(TargetsPath)\Twine.CodeSign.Targets" />
+  <Import Project="$(TargetsPath)\Twine.CodeCoverage.Targets" />
+  <Import Project="$(TargetsPath)\Twine.StyleCop.Targets"/>
+  <Import Project="$(TargetsPath)\Twine.OpenSource.targets" />
+  <Import Project="$(TargetsPath)\Twine.ProjectValidation.targets" />
+
+</Project>
