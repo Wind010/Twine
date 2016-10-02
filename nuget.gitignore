@@ -1,3 +1,4 @@
 ## Ignore Nuget files.
 
-packages/
+/packages/
+!packages/repositories.config
