@@ -65,12 +65,23 @@ namespace Twine.MSBuild.Tasks.CheckInFile
         /// <summary>
         /// Check In the specified file(s).
         /// </summary>
-        /// <param name="filePaths">string - Filepath for files to be checked in.</param>
-        /// <param name="reason">string - Reason for checking in files.</param>
-        /// <returns></returns>
+        /// <param name="filePaths"><see cref="string[]"/>  - Filepaths for files to be checked in.</param>
+        /// <param name="reason"><see cref="string"/>  - Reason for checking in files.</param>
+        /// <returns><see cref="List{KeyValuePair{String, MessageImportance}"/></returns>
         public List<KeyValuePair<string, MessageImportance>> Checkin(string[] filePaths, string reason)
         {
             var messages = new List<KeyValuePair<string, MessageImportance>>();
+
+            if (filePaths.Length == 0)
+            {
+                string msg = "No files in filePaths to checkin.";
+                Log.LogMessage(MessageImportance.High, msg);
+
+                messages.Add(new KeyValuePair<string, MessageImportance>(msg, MessageImportance.High));
+
+                return messages;
+            }
+
             var tfs = new Tfs(TfsUri);
             Workspace workspace = tfs.GetWorkspace(filePaths[0]);
 

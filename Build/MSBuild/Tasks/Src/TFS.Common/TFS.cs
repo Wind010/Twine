@@ -9,7 +9,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 
 using Microsoft.TeamFoundation.Client;
 using Microsoft.TeamFoundation.VersionControl.Client;
@@ -48,6 +47,11 @@ namespace Twine.MSBuild.Tasks.TFS.Common
         /// <returns><see cref="Workspace"/> for more information.</returns>
         public Workspace GetWorkspace(string filePath)
         {
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentNullException("Filepath must be specified.");
+            }
+
             var tpc = new TfsTeamProjectCollection(new Uri(TfsUri));
 
             // Get a reference to Version Control. 
@@ -67,6 +71,11 @@ namespace Twine.MSBuild.Tasks.TFS.Common
         /// <returns><see cref="List{string}"/></returns>
         public List<string> GetPendingEdits(string branchRoot, bool localItem)
         {
+            if (string.IsNullOrWhiteSpace(branchRoot))
+            {
+                throw new ArgumentNullException("BranchRoot must be specified.");
+            }
+
             var filePath = new List<string>();
 
             Workspace workspace = GetWorkspace(branchRoot);

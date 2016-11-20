@@ -74,6 +74,18 @@ namespace Twine.MSBuild.Tasks.CheckOutFile
         /// <param name="filePath">string - Filepath(s) for files to be checked out.</param>
         public void CheckOut(Workspace workspace, string filePath)
         {
+            if (workspace == null)
+            {
+                throw new NullReferenceException("Could not get workspace.");
+            }
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new NullReferenceException("Filepath must be specified.");
+            }
+
+            // No need to sync latest since the build should have done this already.
+
             PendingChange[] pendingChanges = workspace.GetPendingChanges(filePath, RecursionType.Full);
 
             // If no pending change for the filePath was found it means the file is can be checked out
@@ -83,7 +95,7 @@ namespace Twine.MSBuild.Tasks.CheckOutFile
                 workspace.PendEdit(filePath, RecursionType.Full);
             }
         }
-
+        
 
 
     }
