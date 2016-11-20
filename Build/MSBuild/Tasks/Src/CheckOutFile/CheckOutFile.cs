@@ -39,16 +39,12 @@ namespace Twine.MSBuild.Tasks.CheckOutFile
                 Workspace workspace = null;
 
                 // Get the pending changes to the filePaths
-                var fps = FilePaths.Split(new char[] {';'}, StringSplitOptions.RemoveEmptyEntries);
+                var fps = FilePaths.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
                 foreach (string filePath in fps)
                 {
-                    Log.LogMessage(MessageImportance.High, string.Format("Checking out {0} for edit.", filePath));
 
-                    if (workspace == null)
-                    {
-                        var tfs = new Tfs(TfsUri);
-                        workspace = tfs.GetWorkspace(filePath);
-                    }
+                    // Getting workspace can fail intermittently.  We retry here.
+                    workspace = Retry.Do<Workspace>(() => TryGetWorkspace(filePath), TimeSpan.FromSeconds(5), 5);
 
                     if (Path.GetExtension(filePath) != ".wxi")
                     {
@@ -64,7 +60,6 @@ namespace Twine.MSBuild.Tasks.CheckOutFile
 
             return true;
         }
-
 
 
         /// <summary>
@@ -86,6 +81,8 @@ namespace Twine.MSBuild.Tasks.CheckOutFile
 
             // No need to sync latest since the build should have done this already.
 
+            Log.LogMessage(MessageImportance.High, string.Format("Checking out '{0}' for edit.", filePath));
+
             PendingChange[] pendingChanges = workspace.GetPendingChanges(filePath, RecursionType.Full);
 
             // If no pending change for the filePath was found it means the file is can be checked out
@@ -95,7 +92,27 @@ namespace Twine.MSBuild.Tasks.CheckOutFile
                 workspace.PendEdit(filePath, RecursionType.Full);
             }
         }
-        
+
+
+        /// <summary>
+        /// Wrapper to obtain workspace.
+        /// </summary>
+        /// <param name="filePath"><see cref="string"/></param>
+        /// <returns><see cref="Workspace"/></returns>
+        private Workspace TryGetWorkspace(string filePath)
+        {
+            Log.LogMessage(MessageImportance.High, string.Format("Attempting to get workspace for '{0}'.", filePath));
+
+            var tfs = new Tfs(TfsUri);
+            Workspace workspace = tfs.GetWorkspace(filePath);
+
+            if (workspace == null)
+            {
+                throw new NullReferenceException("Could not get workspace.");
+            }
+
+            return workspace;
+        }
 
 
     }
