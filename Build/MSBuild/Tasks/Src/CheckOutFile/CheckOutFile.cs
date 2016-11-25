@@ -19,7 +19,7 @@ namespace Twine.MSBuild.Tasks.CheckOutFile
 
     using TFS.Common;
     
-    public sealed class CheckOutFile : Task
+    public sealed class CheckOutFile : TwineTask
     {
         [Required]
         public string TfsUri { get; set; }
@@ -54,7 +54,8 @@ namespace Twine.MSBuild.Tasks.CheckOutFile
             }
             catch (Exception ex)
             {
-                Log.LogMessage(MessageImportance.High, string.Format("Failed to checkout file:  {0}", ex));
+                Logger(MessageImportance.High, string.Format("Failed to checkout file:  {0}", ex));
+
                 return false;
             }
 
@@ -65,23 +66,23 @@ namespace Twine.MSBuild.Tasks.CheckOutFile
         /// <summary>
         /// Check out the specified file(s).
         /// </summary>
-        /// <param name="workspace">Workspace</param>
+        /// <param name="workspace"><see cref="Workspace"/></param>
         /// <param name="filePath">string - Filepath(s) for files to be checked out.</param>
         public void CheckOut(Workspace workspace, string filePath)
         {
             if (workspace == null)
             {
-                throw new NullReferenceException("Could not get workspace.");
+                throw new ArgumentNullException("Could not get workspace.");
             }
 
             if (string.IsNullOrWhiteSpace(filePath))
             {
-                throw new NullReferenceException("Filepath must be specified.");
+                throw new ArgumentNullException("Filepath must be specified.");
             }
 
             // No need to sync latest since the build should have done this already.
 
-            Log.LogMessage(MessageImportance.High, string.Format("Checking out '{0}' for edit.", filePath));
+            Logger(MessageImportance.High, string.Format("Checking out '{0}' for edit.", filePath));
 
             PendingChange[] pendingChanges = workspace.GetPendingChanges(filePath, RecursionType.Full);
 
@@ -99,9 +100,14 @@ namespace Twine.MSBuild.Tasks.CheckOutFile
         /// </summary>
         /// <param name="filePath"><see cref="string"/></param>
         /// <returns><see cref="Workspace"/></returns>
-        private Workspace TryGetWorkspace(string filePath)
+        public Workspace TryGetWorkspace(string filePath)
         {
-            Log.LogMessage(MessageImportance.High, string.Format("Attempting to get workspace for '{0}'.", filePath));
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                throw new ArgumentNullException("Filepath must be specified.");
+            }
+
+            Logger(MessageImportance.High, string.Format("Attempting to get workspace for '{0}'.", filePath));
 
             var tfs = new Tfs(TfsUri);
             Workspace workspace = tfs.GetWorkspace(filePath);

@@ -70,6 +70,12 @@
       <HintPath>..\packages\Microsoft.TeamFoundationServer.ExtendedClient.14.102.0\lib\net45\Microsoft.TeamFoundation.VersionControl.Common.Integration.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.VisualStudio.Services.Client">
+      <HintPath>..\packages\Microsoft.VisualStudio.Services.InteractiveClient.14.102.0\lib\net45\Microsoft.VisualStudio.Services.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.Services.WebApi">
+      <HintPath>..\packages\Microsoft.VisualStudio.Services.Client.14.102.0\lib\net45\Microsoft.VisualStudio.Services.WebApi.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />

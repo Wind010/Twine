@@ -99,5 +99,34 @@ namespace Twine.MSBuild.Tasks.TFS.Common
         }
 
 
+        /// <summary>
+        /// Undo the pending changes.
+        /// </summary>
+        /// <param name="filePaths">Semi-colon separated list of file paths.</param>
+        public void UndoPendingChanges(string filePaths)
+        {
+            var fps = filePaths.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+            UndoPendingChanges(new List<string>(fps));
+        }
+
+        /// <summary>
+        /// Undo the pending changes.
+        /// </summary>
+        /// <param name="filePaths"><see cref="List{string}"/>-FilePaths</param>
+
+        public void UndoPendingChanges(List<string> filePaths)
+        {
+            foreach (string filePath in filePaths)
+            {
+                // Getting workspace can fail intermittently.  We retry here.
+                var workspace = GetWorkspace(filePath);
+
+                PendingChange[] pendingChanges = workspace.GetPendingChanges(filePath, RecursionType.Full);
+                workspace.Undo(pendingChanges);
+            }
+        }
+
+
     }
 }
